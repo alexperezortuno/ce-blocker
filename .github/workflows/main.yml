@@ -32,5 +32,5 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: extension
+        name: traffic_blocker
         path: build/traffic_blocker.zip
