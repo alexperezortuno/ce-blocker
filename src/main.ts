@@ -7,9 +7,9 @@ import VueSweetalert2 from 'vue-sweetalert2';
 import "bootstrap/dist/css/bootstrap.css";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faRemove } from "@fortawesome/free-solid-svg-icons";
+import {faRemove, faChevronLeft, faChartBar} from "@fortawesome/free-solid-svg-icons";
 
-library.add(faRemove);
+library.add(faRemove, faChevronLeft, faChartBar);
 
 const app = createApp(App);
 
@@ -20,6 +20,11 @@ const router = createRouter({
             path: '/',
             name: 'Dashboard',
             component: () => import('./components/Dashboard.vue')
+        },
+        {
+            path: '/statistics',
+            name: 'Statistics',
+            component: () => import('./components/Statistics.vue')
         },
         {
             path: '/:catchAll(.*)*',

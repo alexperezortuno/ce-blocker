@@ -218,14 +218,22 @@ function trimString(item: string, maxLength: number): string {
           </div>
         </div>
       </div>
+
+      <div class="col-12 mt-2 mb-2">
+        <div class="row g-3 align-items-right">
+          <div class="col-10"></div>
+          <div class="col-2">
+            <RouterLink
+                to="/statistics"
+                class="btn btn-primary btn-sm">
+              <font-awesome-icon :icon="['fas', 'chart-bar']" />
+            </RouterLink>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.content {
-  padding: 5px;
-  width: 90%;
-  display: flex;
-}
 </style>
