@@ -131,5 +131,4 @@ dist
 package-lock.json
 node_modules/*
 dist/*
-*.d.ts
 .idea/*
