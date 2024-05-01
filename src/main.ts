@@ -7,9 +7,9 @@ import VueSweetalert2 from 'vue-sweetalert2';
 import "bootstrap/dist/css/bootstrap.css";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import {faRemove, faChevronLeft, faChartBar} from "@fortawesome/free-solid-svg-icons";
+import {faRemove, faChevronLeft, faChartBar, faBan} from "@fortawesome/free-solid-svg-icons";
 
-library.add(faRemove, faChevronLeft, faChartBar);
+library.add(faRemove, faChevronLeft, faChartBar, faBan);
 
 const app = createApp(App);
 

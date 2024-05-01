@@ -21,13 +21,7 @@ const Toast = Swal.mixin({
 
 onMounted(() => {
   chrome.storage.local.get(['blocker'], (result: any) => {
-    if (!result.blocker) {
-      chrome.storage.local.set({blocker: {rules: [], isEnabled: false}}, () => console.log('Blocker is set'));
-    } else {
-      chrome.storage.local.get(['blocker'], (result: any) => {
-        blockUrls.value = result.blocker;
-      });
-    }
+    blockUrls.value = result.blocker;
   });
 });
 

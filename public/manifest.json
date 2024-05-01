@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Traffic blocker",
   "description": "Customize your browsing experience by blocking unwanted traffic",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "action": {
     "default_popup": "index.html",
     "default_icon": "blocker.png"
@@ -11,7 +11,8 @@
     "storage",
     "webRequest",
     "declarativeNetRequest",
-    "declarativeNetRequestFeedback"
+    "declarativeNetRequestFeedback",
+    "nativeMessaging"
   ],
   "host_permissions": [
     "http://*/*",
