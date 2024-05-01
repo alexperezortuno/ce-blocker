@@ -196,32 +196,42 @@ function trimString(item: string, maxLength: number): string {
         </div>
       </div>
 
-      <div class="col-12 mt-2 text-center"
-           v-for="(blockUrl, index) in blockUrls.rules"
-           :key="index">
-        <div class="row">
-          <div class="col-10 text-start custom-color-white">
-            {{ trimString(blockUrl.condition.urlFilter, 30) }}
+      <div class="col-12 mt-2 mb-2">
+        <div class="row justify-content-end">
+          <div class="col-2 align-self-end">
+            <RouterLink
+                to="/settings"
+                class="custom-color-white">
+              <font-awesome-icon :icon="['fas', 'sliders']"/>
+            </RouterLink>
           </div>
-          <div class="col-2">
-            <button class="btn btn-outline-danger btn-sm"
-                    @click="removeItem(blockUrl, index)"
-            >
-              <font-awesome-icon :icon="['fas', 'remove']" />
-            </button>
+          <div class="col-2 align-self-end">
+            <RouterLink
+                to="/statistics"
+                class="custom-color-white">
+              <font-awesome-icon :icon="['fas', 'chart-bar']"/>
+            </RouterLink>
           </div>
         </div>
       </div>
 
-      <div class="col-12 mt-2 mb-2">
-        <div class="row g-3 align-items-right">
-          <div class="col-10"></div>
-          <div class="col-2">
-            <RouterLink
-                to="/statistics"
-                class="btn btn-primary btn-sm">
-              <font-awesome-icon :icon="['fas', 'chart-bar']" />
-            </RouterLink>
+      <div class="col-12 mt-2 mb-4">
+        <div class="row">
+          <div class="col-12 text-center mb-2"
+               v-for="(blockUrl, index) in blockUrls.rules"
+               :key="index">
+            <div class="row">
+              <div class="col-10 text-start custom-color-white">
+                {{ trimString(blockUrl.condition.urlFilter, 30) }}
+              </div>
+              <div class="col-2">
+                <button class="btn btn-outline-danger btn-sm"
+                        @click="removeItem(blockUrl, index)"
+                >
+                  <font-awesome-icon :icon="['fas', 'remove']"/>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

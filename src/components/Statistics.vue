@@ -36,7 +36,7 @@ function refreshCounter(): void {
       <h2 class="ms-2">Statistics</h2>
     </div>
 
-    <div class="col-12 text-center ">
+    <div class="col-12 text-center">
       <h5>Traffic blocked</h5>
       <div class="row justify-content-md-center">
         <div class="col-12">
@@ -46,10 +46,7 @@ function refreshCounter(): void {
           <b class="custom-color-white">{{ blockedTraffic }}</b>
         </div>
       </div>
-
     </div>
-
-    <div class="col-12"></div>
   </div>
 </div>
 </template>

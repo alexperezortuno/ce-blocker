@@ -6,10 +6,18 @@ import {createRouter, createWebHistory} from 'vue-router';
 import VueSweetalert2 from 'vue-sweetalert2';
 import "bootstrap/dist/css/bootstrap.css";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import {faRemove, faChevronLeft, faChartBar, faBan} from "@fortawesome/free-solid-svg-icons";
+import {library} from "@fortawesome/fontawesome-svg-core";
+import {
+    faRemove,
+    faChevronLeft,
+    faChartBar,
+    faBan,
+    faSliders,
+    faFileExport,
+    faFileImport
+} from "@fortawesome/free-solid-svg-icons";
 
-library.add(faRemove, faChevronLeft, faChartBar, faBan);
+library.add(faRemove, faChevronLeft, faChartBar, faBan, faSliders, faFileExport, faFileImport);
 
 const app = createApp(App);
 
@@ -25,6 +33,11 @@ const router = createRouter({
             path: '/statistics',
             name: 'Statistics',
             component: () => import('./components/Statistics.vue')
+        },
+        {
+            path: '/settings',
+            name: 'Settings',
+            component: () => import('./components/Settings.vue')
         },
         {
             path: '/:catchAll(.*)*',
