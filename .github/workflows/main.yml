@@ -27,7 +27,7 @@ jobs:
     - name: Package Extension
       run: |
         mkdir -p build
-        zip -r build/traffic_blocker.zip dist/
+        zip -r build/traffic_blocker.zip /
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
