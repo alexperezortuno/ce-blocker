@@ -51,7 +51,6 @@ onMounted(async () => {
   chrome.webRequest.onCompleted.addListener(
       (details: any) => {
         if (details.tabId === Number(route.query.tabId)) {
-          console.log(details);
           saveInStorage(details);
         }
       },

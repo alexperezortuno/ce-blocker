@@ -95,7 +95,6 @@ function updateStaticRules(): void {
 }
 
 function removeItem(item: any, index: number): void {
-  console.log(item);
   blockUrls.value.rules.splice(index, 1);
   updateStaticRules();
 }

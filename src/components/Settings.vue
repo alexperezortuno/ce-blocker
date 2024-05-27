@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 import Swal from "sweetalert2";
-import {ref} from "vue";
+import {onMounted, ref, toRaw} from "vue";
 
-const importRule = ref<string>('');
 const isEnabled = ref<boolean>(false);
+const blockerRules = ref<any>({rules: []});
 
 const Toast = Swal.mixin({
   toast: true,
@@ -18,7 +18,7 @@ const Toast = Swal.mixin({
   }
 });
 
-async function copyToClipboard(): Promise<void> {
+async function exportFile(): Promise<void> {
   try {
     const data: any[] = [];
     chrome.storage.local.get(['blocker'], async (result: any) => {
@@ -35,8 +35,13 @@ async function copyToClipboard(): Promise<void> {
           }
       );
 
-      console.log(data);
-      await navigator.clipboard.writeText(JSON.stringify(data));
+      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+      const blob: Blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+      const url: any = URL.createObjectURL(blob);
+      const a: HTMLAnchorElement = document.createElement('a');
+      a.href = url;
+      a.download = 'rules.json';
+      a.click();
       await Toast.fire({
         icon: "success",
         title: "Copied to clipboard"
@@ -47,69 +52,94 @@ async function copyToClipboard(): Promise<void> {
   }
 }
 
-function importRules(): void {
-  let newRules: any[] = [];
-  const values = JSON.parse(importRule.value);
+async function importRules(): Promise<void> {
+  try {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (event: any) => {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = async (e: any) => {
+        const text: any = e.target.result;
+        const data: any = JSON.parse(text);
 
-  if (!values || values.length === 0) {
-    return;
+        if (!data || data.length === 0) {
+          return;
+        }
+
+        data.forEach((item: any) => {
+          let prevData: any = {
+            "id": 0,
+            "priority": 1,
+            "action": {"type": chrome.declarativeNetRequest.RuleActionType.BLOCK},
+            "condition": {
+              "urlFilter": item.rule
+            }
+          };
+
+          if (item.domains) {
+            prevData.condition.initiatorDomains = item.domains;
+          } else {
+            prevData.condition.excludedInitiatorDomains = ['localhost'];
+          }
+
+          blockerRules.value.rules.push(toRaw(prevData));
+        });
+        blockerRules
+            .value
+            .rules
+            .forEach((item: any, index: number) => {
+              item.id = index + 1;
+            });
+
+        await chrome
+            .runtime
+            .sendMessage({
+              updateRules: {
+                data: blockerRules.value.rules,
+                isEnabled: isEnabled.value
+              }
+            });
+      };
+      reader.readAsText(file);
+
+      await Toast.fire({
+        icon: "success",
+        title: "Rules imported"
+      });
+    }
+    input.click();
+  } catch (err) {
+    console.error('Failed to import: ', err);
   }
-
-  chrome.storage.local.get(['blocker'], async (result: any) => {
-    isEnabled.value = result.blocker.isEnabled;
-  });
-
-  values.forEach((item: any, k: number) => {
-    let prevData: any = {
-      "id": k + 1,
-      "priority": 1,
-      "action": {"type": chrome.declarativeNetRequest.RuleActionType.BLOCK},
-      "condition": {
-        "urlFilter": item.rule
-      }
-    };
-
-    if (item.domains) {
-      prevData.condition.initiatorDomains = item.domains;
-    } else {
-      prevData.condition.excludedInitiatorDomains = ['localhost'];
-    }
-
-    newRules.push(prevData);
-  });
-
-  chrome.declarativeNetRequest.getDynamicRules(previousRules => {
-    const previousRuleIds = previousRules.map(rule => rule.id);
-    chrome.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds: previousRuleIds,
-      addRules: newRules
-    });
-
-    chrome.storage.local.set({
-      blocker: {
-        rules: newRules,
-        isEnabled: isEnabled.value
-      }
-    }, () => console.log('Blocker is set'));
-  });
-
-  console.log(newRules);
 }
 
-function openModal(): void {
-  Swal.fire({
-    title: 'Import rules',
-    input: 'textarea',
-    inputPlaceholder: 'Paste here',
-    showCancelButton: true,
-    confirmButtonText: 'Import',
-    showLoaderOnConfirm: true,
-    preConfirm: (value) => {
-      importRule.value = value;
-      importRules();
-    }
-  });
-}
+// function openModal(): void {
+//   Swal.fire({
+//     title: 'Import rules',
+//     input: 'textarea',
+//     inputPlaceholder: 'Paste here',
+//     showCancelButton: true,
+//     confirmButtonText: 'Import',
+//     showLoaderOnConfirm: true,
+//     preConfirm: (value) => {
+//       importRule.value = value;
+//       importRules();
+//     }
+//   });
+// }
+
+onMounted(() => {
+  chrome
+      .storage
+      .local
+      .get(['blocker'], async (result: any) => {
+        blockerRules.value.rules = toRaw(result.blocker.rules);
+        console.log("BLOCKER", blockerRules.value.rules);
+        isEnabled.value = result.blocker.isEnabled;
+      });
+})
 </script>
 
 <template>
@@ -129,7 +159,7 @@ function openModal(): void {
       </div>
       <div class="col-2 mb-2">
         <a class="custom-color-white"
-           @click="copyToClipboard">
+           @click="exportFile">
           <font-awesome-icon :icon="['fas', 'file-export']"/>
         </a>
       </div>
@@ -139,8 +169,8 @@ function openModal(): void {
       </div>
       <div class="col-2 mb-2">
         <a class="custom-color-white"
-           @click="openModal">
-          <font-awesome-icon :icon="['fas', 'file-import']" />
+           @click="importRules">
+          <font-awesome-icon :icon="['fas', 'file-import']"/>
         </a>
       </div>
     </div>
