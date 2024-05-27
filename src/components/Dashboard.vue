@@ -94,7 +94,7 @@ function updateStaticRules(): void {
   });
 }
 
-function removeItem(item: any, index: number): void {
+function removeItem(index: number): void {
   blockUrls.value.rules.splice(index, 1);
   updateStaticRules();
 }
@@ -225,7 +225,7 @@ function trimString(item: string, maxLength: number): string {
               </div>
               <div class="col-2">
                 <button class="btn btn-outline-danger btn-sm"
-                        @click="removeItem(blockUrl, index)"
+                        @click="removeItem(index)"
                 >
                   <font-awesome-icon :icon="['fas', 'remove']"/>
                 </button>
