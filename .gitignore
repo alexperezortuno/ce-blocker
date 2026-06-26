@@ -132,3 +132,6 @@ package-lock.json
 node_modules/*
 dist/*
 .idea/*
+AGENTS.md
+.agents
+skills-lock.json
