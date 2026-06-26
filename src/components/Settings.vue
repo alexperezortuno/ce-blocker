@@ -20,35 +20,30 @@ const Toast = Swal.mixin({
 
 async function exportFile(): Promise<void> {
   try {
-    const data: any[] = [];
-    chrome.storage.local.get(['blocker'], async (result: any) => {
-      result.blocker.rules.forEach((item: any) => {
-            let prevData: any = {
-              rule: item.condition.urlFilter
-            };
+    const result = await chrome.storage.local.get(['blocker']);
+    const exportData = {
+      rules: result.blocker?.rules || [],
+      isEnabled: result.blocker?.isEnabled || false
+    };
 
-            if (item.condition.initiatorDomains) {
-              prevData.domains = item.condition.initiatorDomains
-            }
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'rules.json';
+    a.click();
+    URL.revokeObjectURL(url);
 
-            data.push(prevData);
-          }
-      );
-
-      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-      const blob: Blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-      const url: any = URL.createObjectURL(blob);
-      const a: HTMLAnchorElement = document.createElement('a');
-      a.href = url;
-      a.download = 'rules.json';
-      a.click();
-      await Toast.fire({
-        icon: "success",
-        title: "Copied to clipboard"
-      });
+    await Toast.fire({
+      icon: "success",
+      title: "Rules exported"
     });
   } catch (err) {
-    console.error('Failed to copy: ', err);
+    console.error('Failed to export: ', err);
+    await Toast.fire({
+      icon: "error",
+      title: "Export failed"
+    });
   }
 }
 
@@ -61,57 +56,74 @@ async function importRules(): Promise<void> {
       const file = event.target.files[0];
       const reader = new FileReader();
       reader.onload = async (e: any) => {
-        const text: any = e.target.result;
-        const data: any = JSON.parse(text);
-
-        if (!data || data.length === 0) {
+        let importData: any;
+        try {
+          const text: string = e.target.result;
+          importData = JSON.parse(text);
+        } catch {
+          await Toast.fire({icon: "error", title: "Invalid JSON file"});
           return;
         }
 
-        data.forEach((item: any) => {
-          let prevData: any = {
-            "id": 0,
-            "priority": 1,
-            "action": {"type": chrome.declarativeNetRequest.RuleActionType.BLOCK},
-            "condition": {
-              "urlFilter": item.rule
-            }
+        if (!importData || !importData.rules || !Array.isArray(importData.rules) || importData.rules.length === 0) {
+          await Toast.fire({icon: "error", title: "No valid rules found"});
+          return;
+        }
+
+        const result = await Swal.fire({
+          title: "Import rules",
+          text: "Replace existing rules or merge with them?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Replace",
+          cancelButtonText: "Merge",
+          reverseButtons: true
+        });
+
+        const replace = result.isConfirmed;
+
+        const validatedRules = importData.rules.map((rule: any, index: number) => {
+          const fixedRule: any = {
+            id: rule.id || index + 1,
+            priority: rule.priority ?? 1,
+            action: rule.action || {type: chrome.declarativeNetRequest.RuleActionType.BLOCK},
+            condition: rule.condition || {urlFilter: rule.rule || ''}
           };
 
-          if (item.domains) {
-            prevData.condition.initiatorDomains = item.domains;
-          } else {
-            prevData.condition.excludedInitiatorDomains = ['localhost'];
+          if (!fixedRule.condition.urlFilter && rule.rule) {
+            fixedRule.condition.urlFilter = rule.rule;
           }
 
-          blockerRules.value.rules.push(toRaw(prevData));
-        });
-        blockerRules
-            .value
-            .rules
-            .forEach((item: any, index: number) => {
-              item.id = index + 1;
-            });
+          if (fixedRule.condition.initiatorDomains) {
+            fixedRule.condition.initiatorDomains = fixedRule.condition.initiatorDomains;
+          } else if (fixedRule.condition.excludedInitiatorDomains) {
+            fixedRule.condition.excludedInitiatorDomains = fixedRule.condition.excludedInitiatorDomains;
+          }
 
-        await chrome
-            .runtime
-            .sendMessage({
-              updateRules: {
-                data: blockerRules.value.rules,
-                isEnabled: isEnabled.value
-              }
-            });
+          return fixedRule;
+        });
+
+        const rulesToSend = replace ? validatedRules : [...blockerRules.value.rules, ...validatedRules];
+
+        const response = await chrome.runtime.sendMessage({
+          updateRules: {
+            data: rulesToSend,
+            isEnabled: importData.isEnabled !== undefined ? importData.isEnabled : isEnabled.value
+          }
+        });
+
+        if (response?.success) {
+          await Toast.fire({icon: "success", title: "Rules imported"});
+        } else {
+          await Toast.fire({icon: "error", title: response?.error || "Import failed"});
+        }
       };
       reader.readAsText(file);
-
-      await Toast.fire({
-        icon: "success",
-        title: "Rules imported"
-      });
     }
     input.click();
   } catch (err) {
     console.error('Failed to import: ', err);
+    await Toast.fire({icon: "error", title: "Import failed"});
   }
 }
 
