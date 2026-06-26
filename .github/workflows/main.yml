@@ -21,16 +21,11 @@ jobs:
     - name: Install Dependencies
       run: npm i
 
-    - name: Build
-      run: npm run build
-
-    - name: Package Extension
-      run: |
-        mkdir -p build
-        zip -r build/traffic_blocker.zip dist/
+    - name: Build and Package
+      run: npm run package
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
         name: traffic_blocker
-        path: build/traffic_blocker.zip
+        path: build/traffic-blocker-*.zip

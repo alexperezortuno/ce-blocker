@@ -135,3 +135,6 @@ dist/*
 AGENTS.md
 .agents
 skills-lock.json
+pnpm-lock.yaml
+pnpm-workspace.yaml
+*.zip

@@ -4,10 +4,11 @@
   "version": "0.1.1",
   "type": "module",
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist build",
     "dev": "vite",
     "build": "npm run clean && vue-tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "package": "npm run build && node scripts/package.cjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
@@ -33,6 +34,7 @@
     "@types/webextension-polyfill": "^0.10.7",
     "@vitejs/plugin-vue": "^5.0.4",
     "chrome-types": "^0.1.276",
+    "jszip": "^3.10.1",
     "path": "^0.12.7",
     "sass": "^1.75.0",
     "typescript": "^5.2.2",
