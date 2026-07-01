@@ -327,6 +327,13 @@ onMounted(() => {
           isEnabled.value = Boolean(result.blocker.isEnabled);
         }
       });
+
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.blocker) {
+      blockerRules.value.rules = Array.isArray(changes.blocker.newValue?.rules) ? [...changes.blocker.newValue.rules] : [];
+      isEnabled.value = Boolean(changes.blocker.newValue?.isEnabled);
+    }
+  });
 })
 </script>
 
