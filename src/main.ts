@@ -54,7 +54,7 @@ router.beforeEach((to: any) => {
     }
 });
 
-app.use(router)
-    .use(VueSweetalert2)
-    .component('font-awesome-icon', FontAwesomeIcon)
-    .mount('#app')
+const app2 = app.use(router) as any;
+app2.use(VueSweetalert2);
+app2.component('font-awesome-icon', FontAwesomeIcon);
+app2.mount('#app');
