@@ -34,11 +34,20 @@ const Toast = Swal.mixin({
   }
 });
 
-onMounted(() => {
+function loadRules() {
   chrome.storage.local.get(['blocker'], (result: any) => {
     if (result.blocker) {
       blockUrls.rules = Array.isArray(result.blocker.rules) ? [...result.blocker.rules] : [];
       blockUrls.isEnabled = Boolean(result.blocker.isEnabled);
+    }
+  });
+}
+
+onMounted(() => {
+  loadRules();
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.blocker) {
+      loadRules();
     }
   });
 });
