@@ -6,9 +6,9 @@
   "scripts": {
     "clean": "rm -rf dist build",
     "dev": "vite",
-    "build": "npm run clean && vue-tsc && vite build",
+    "build": "pnpm run clean && vue-tsc && vite build",
     "preview": "vite preview",
-    "package": "npm run build && node scripts/package.cjs"
+    "package": "pnpm run build && node scripts/package.cjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
