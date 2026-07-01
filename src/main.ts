@@ -14,10 +14,16 @@ import {
     faBan,
     faSliders,
     faFileExport,
-    faFileImport
+    faFileImport,
+    faChevronUp,
+    faChevronDown,
+    faGlobe,
+    faPlus,
+    faRotate,
+    faTrash
 } from "@fortawesome/free-solid-svg-icons";
 
-library.add(faRemove, faChevronLeft, faChartBar, faBan, faSliders, faFileExport, faFileImport);
+library.add(faRemove, faChevronLeft, faChartBar, faBan, faSliders, faFileExport, faFileImport, faChevronUp, faChevronDown, faGlobe, faPlus, faRotate, faTrash);
 
 const app = createApp(App);
 

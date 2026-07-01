@@ -12,8 +12,8 @@ const validateRule = (rule: any): boolean => {
 
 const autoFixRule = (rule: any, index: number): any => {
     return {
-        id: typeof rule.id === 'number' ? rule.id : index + 1,
-        priority: typeof rule.priority === 'number' ? rule.priority : 1,
+        id: index + 1,
+        priority: typeof rule.priority === 'number' ? rule.priority : (typeof rule.priority === 'string' ? parseInt(rule.priority, 10) : 1),
         action: rule.action && typeof rule.action.type === 'string' ? rule.action : {type: chrome.declarativeNetRequest.RuleActionType.BLOCK},
         condition: rule.condition && typeof rule.condition.urlFilter === 'string' ? rule.condition : {urlFilter: rule.condition?.urlFilter || rule.rule || ''}
     };
@@ -76,8 +76,8 @@ const registerEventListeners = () => {
                 }
 
                 const validatedRules = blockerRules
-                    .filter(validateRule)
-                    .map((rule, index) => validateRule(rule) ? rule : autoFixRule(rule, index));
+                    .map((rule, index) => autoFixRule(rule, index))
+                    .map((rule, index) => ({ ...rule, id: index + 1 }));
 
                 chrome
                     .declarativeNetRequest
