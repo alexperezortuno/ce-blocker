@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 import Swal from "sweetalert2";
-import {onMounted, ref, toRaw} from "vue";
+import {onMounted, ref} from "vue";
+import {useRouter} from "vue-router";
 
+const router = useRouter();
 const isEnabled = ref<boolean>(false);
 const blockerRules = ref<any>({rules: []});
 
@@ -65,7 +67,17 @@ async function importRules(): Promise<void> {
           return;
         }
 
-        if (!importData || !importData.rules || !Array.isArray(importData.rules) || importData.rules.length === 0) {
+        if (!importData || !importData.rules) {
+          await Toast.fire({icon: "error", title: "No valid rules found"});
+          return;
+        }
+
+        let rulesArray = importData.rules;
+        if (!Array.isArray(rulesArray)) {
+          rulesArray = Object.values(rulesArray);
+        }
+
+        if (!rulesArray || rulesArray.length === 0) {
           await Toast.fire({icon: "error", title: "No valid rules found"});
           return;
         }
@@ -82,7 +94,7 @@ async function importRules(): Promise<void> {
 
         const replace = result.isConfirmed;
 
-        const validatedRules = importData.rules.map((rule: any, index: number) => {
+        const validatedRules = rulesArray.map((rule: any, index: number) => {
           const fixedRule: any = {
             id: rule.id || index + 1,
             priority: rule.priority ?? 1,
@@ -114,6 +126,7 @@ async function importRules(): Promise<void> {
 
         if (response?.success) {
           await Toast.fire({icon: "success", title: "Rules imported"});
+          router.push('/');
         } else {
           await Toast.fire({icon: "error", title: response?.error || "Import failed"});
         }
@@ -147,9 +160,10 @@ onMounted(() => {
       .storage
       .local
       .get(['blocker'], async (result: any) => {
-        blockerRules.value.rules = toRaw(result.blocker.rules);
-        console.log("BLOCKER", blockerRules.value.rules);
-        isEnabled.value = result.blocker.isEnabled;
+        if (result.blocker) {
+          blockerRules.value.rules = Array.isArray(result.blocker.rules) ? [...result.blocker.rules] : [];
+          isEnabled.value = Boolean(result.blocker.isEnabled);
+        }
       });
 })
 </script>
