@@ -346,7 +346,7 @@ function moveRuleDown(index: number): void {
           <h1 class="custom-color-white mb-0">Traffic blocker</h1>
           <button
             v-if="blockUrls.rules.length > 0"
-            class="btn btn-outline-danger btn-sm"
+            class="btn btn-outline-danger btn-sm clear-btn"
             @click="clearAllRules"
             title="Clear all rules">
             <font-awesome-icon :icon="['fas', 'trash']"/>
@@ -451,27 +451,27 @@ function moveRuleDown(index: number): void {
                :key="blockUrl.id || index"
                @click="openRuleModal(blockUrls.rules.indexOf(blockUrl))"
                style="cursor: pointer;">
-            <div class="row align-items-center">
+            <div class="row align-items-center custom-rule-row">
               <div class="col-1">
-                <span class="custom-color-white" style="font-size: 0.75rem;">{{ index + 1 }}</span>
+                <span class="badge bg-secondary custom-color-white">{{ index + 1 }}</span>
               </div>
-              <div class="col-7 text-start custom-color-white">
-                {{ trimString(blockUrl.condition.urlFilter, 25) }}
+              <div class="col-6 text-start custom-color-white">
+                {{ trimString(blockUrl.condition.urlFilter, 30) }}
               </div>
-              <div class="col-4 text-end">
-                <button class="btn btn-outline-secondary btn-sm me-1"
+              <div class="col-5 text-end">
+                <button class="btn btn-outline-info btn-sm me-1 move-btn"
                         @click.stop="moveRuleUp(blockUrls.rules.indexOf(blockUrl))"
                         :disabled="blockUrls.rules.indexOf(blockUrl) === 0"
                         title="Move up">
                   <font-awesome-icon :icon="['fas', 'chevron-up']"/>
                 </button>
-                <button class="btn btn-outline-secondary btn-sm me-1"
+                <button class="btn btn-outline-info btn-sm me-1 move-btn"
                         @click.stop="moveRuleDown(blockUrls.rules.indexOf(blockUrl))"
                         :disabled="blockUrls.rules.indexOf(blockUrl) === blockUrls.rules.length - 1"
                         title="Move down">
                   <font-awesome-icon :icon="['fas', 'chevron-down']"/>
                 </button>
-                <button class="btn btn-outline-danger btn-sm"
+                <button class="btn btn-outline-danger btn-sm delete-btn"
                         @click.stop="removeItem(blockUrls.rules.indexOf(blockUrl))"
                         title="Delete rule">
                   <font-awesome-icon :icon="['fas', 'remove']"/>
@@ -501,12 +501,55 @@ function moveRuleDown(index: number): void {
   border-color: #6c757d;
 }
 
-.btn-outline-secondary {
-  padding: 0.15rem 0.4rem;
-  font-size: 0.7rem;
+.custom-rule-row {
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s ease;
 }
 
-.btn-outline-secondary:disabled {
+.custom-rule-row:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.move-btn {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.move-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.move-btn:disabled {
   opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.delete-btn {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+  transform: scale(1.1);
+}
+
+.clear-btn {
+  padding: 0.3rem 0.6rem;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+  background-color: #dc3545;
+  color: white;
+  transform: scale(1.05);
 }
 </style>
