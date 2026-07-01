@@ -5,17 +5,21 @@ Chrome MV3 extension that blocks unwanted traffic using `declarativeNetRequest` 
 ## Features
 
 - Block URLs via wildcard patterns (e.g., `*://*.example.com/*`)
-- Optional domain filtering (block only from specific initiators)
+- Optional domain filtering (block only from specific initiators or exclude domains)
 - Toggle blocking on/off
-- Export/Import rules (JSON format)
+- **Preview and edit** rules in a modal window
+- **Undo** deleted rules (5 second window)
+- **Clear all** rules with one click
+- Export/Import rules (JSON format) with merge or replace options
 - Blocked traffic counter
+- Reset statistics
 
 ## Installation
 
 ### Prerequisites
 
-- Node.js 16+ (recommended: 16.13.1)
-- npm 8+ (recommended: 8.1.2)
+- Node.js 18+ (tested with 18.x, 20.x, 22.x)
+- npm 8+
 
 ### Steps
 
@@ -40,8 +44,25 @@ npm run build
 | `npm run dev` | Start Vite dev server |
 | `npm run build` | TypeScript check + production build to `dist/` |
 | `npm run preview` | Preview production build locally |
+| `npm run package` | Build + create zip for Chrome Web Store (`build/traffic-blocker-{version}.zip`) |
+| `npm run clean` | Remove `dist/` and `build/` folders |
 
-## Export/Import Rules
+## Usage
+
+### Adding Rules
+
+1. Enter a URL pattern (e.g., `*://*.example.com/*`) or wildcard (e.g., `*://api.mercadolibre.com/*`)
+2. Optionally enter initiator domains to block only requests FROM those domains
+3. Click **Add rule**
+
+### Managing Rules
+
+- **Click** on a rule row to **view/edit** its details in a modal
+- **Delete** a rule with the X button - use the **Undo** toast to restore
+- **Toggle** the switch to enable/disable all blocking
+- **Clear All** (trash icon) removes all rules and disables blocker
+
+### Export/Import
 
 Rules are stored in JSON format:
 
@@ -62,12 +83,11 @@ Rules are stored in JSON format:
 }
 ```
 
-### Import Notes
-
+**Import options:**
 - **Replace**: Overwrites all existing rules
 - **Merge**: Appends imported rules to existing ones
-- Missing fields are auto-filled with defaults (`priority: 1`, `action: block`)
-- Invalid rules are skipped with error toast
+
+**Auto-fix:** Missing fields are filled with defaults (`priority: 1`, `action: block`, `urlFilter` from legacy `rule` field).
 
 ## Architecture
 
@@ -78,9 +98,9 @@ src/
 ├── background/          # Service worker
 │   └── background.ts    # Handles storage, webRequest, declarativeNetRequest
 └── components/
-    ├── Dashboard.vue     # Main view (add/remove rules, toggle)
-    ├── Settings.vue      # Export/Import rules
-    └── Statistics.vue    # Blocked traffic counter
+    ├── Dashboard.vue    # Main view (add/edit/delete rules, toggle)
+    ├── Settings.vue     # Export/Import rules
+    └── Statistics.vue   # Blocked traffic counter + reset
 ```
 
 ### Key Configs
@@ -95,11 +115,22 @@ src/
 | `settings` | `{ blocked: number }` | Blocked request counter |
 | `blocker` | `{ rules: Rule[], isEnabled: boolean }` | Active rules and toggle state |
 
-## Chrome Extension API Used
+## Chrome Extension APIs
 
-- `chrome.storage.local` — Persist rules and settings
-- `chrome.webRequest.onErrorOccurred` — Detect blocked requests
-- `chrome.declarativeNetRequest` — Block URLs dynamically
+| API | Purpose |
+|-----|---------|
+| `chrome.storage.local` | Persist rules and settings |
+| `chrome.webRequest.onErrorOccurred` | Detect blocked requests (increment counter) |
+| `chrome.declarativeNetRequest` | Block URLs dynamically |
+| `chrome.runtime.sendMessage` | Communicate between popup and background |
+
+## Chrome Web Store Publishing
+
+```bash
+npm run package
+```
+
+This creates `build/traffic-blocker-{version}.zip` ready for upload.
 
 ## License
 
