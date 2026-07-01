@@ -1,15 +1,26 @@
 <script setup lang="ts">
-import {onMounted, reactive, ref, toRaw} from "vue";
+import {computed, onMounted, reactive, ref, toRaw} from "vue";
 import Swal from "sweetalert2";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 
 const blockUrls = reactive<{rules: any[], isEnabled: boolean}>({rules: [], isEnabled: false});
 const domain: any = ref<string>('');
 const rule: any = ref<string>('');
+const searchQuery = ref<string>('');
 
 let deletedRule: any = null;
 let deletedIndex: number = -1;
 let undoTimeout: any = null;
+
+const filteredRules = computed(() => {
+  const query = searchQuery.value.toLowerCase().trim();
+  if (!query) return blockUrls.rules;
+  return blockUrls.rules.filter((r: any) => {
+    const urlFilter = r.condition?.urlFilter?.toLowerCase() || '';
+    const initiatorDomains = r.condition?.initiatorDomains?.join(' ')?.toLowerCase() || '';
+    return urlFilter.includes(query) || initiatorDomains.includes(query);
+  });
+});
 
 const Toast = Swal.mixin({
   toast: true,
@@ -37,6 +48,15 @@ async function addDomain(): Promise<void> {
     await Toast.fire({
       icon: "error",
       title: "Rule is required"
+    });
+    return;
+  }
+
+  const existingRule = blockUrls.rules.find((r: any) => r.condition?.urlFilter === rule.value);
+  if (existingRule) {
+    await Toast.fire({
+      icon: "warning",
+      title: "Rule already exists"
     });
     return;
   }
@@ -291,6 +311,22 @@ function trimString(item: string, maxLength: number): string {
     return item;
   }
 }
+
+function moveRuleUp(index: number): void {
+  if (index === 0) return;
+  const temp = blockUrls.rules[index];
+  blockUrls.rules[index] = blockUrls.rules[index - 1];
+  blockUrls.rules[index - 1] = temp;
+  updateStaticRules();
+}
+
+function moveRuleDown(index: number): void {
+  if (index === blockUrls.rules.length - 1) return;
+  const temp = blockUrls.rules[index];
+  blockUrls.rules[index] = blockUrls.rules[index + 1];
+  blockUrls.rules[index + 1] = temp;
+  updateStaticRules();
+}
 </script>
 
 <template>
@@ -383,23 +419,51 @@ function trimString(item: string, maxLength: number): string {
       </div>
 
       <div class="col-12 mt-2 mb-4">
+        <div class="row mb-3" v-if="blockUrls.rules.length > 1">
+          <div class="col-12">
+            <input type="text"
+                   id="search"
+                   class="form-control"
+                   placeholder="Search rules..."
+                   v-model="searchQuery">
+          </div>
+        </div>
         <div class="row">
           <div class="col-12 text-center mb-2"
                v-if="blockUrls.rules.length === 0">
             <span class="custom-color-white">No rules yet. Add one above.</span>
           </div>
           <div class="col-12 text-center mb-2"
-               v-for="(blockUrl, index) in blockUrls.rules"
-               :key="index"
-               @click="openRuleModal(index)"
+               v-else-if="filteredRules.length === 0">
+            <span class="custom-color-white">No rules match "{{ searchQuery }}"</span>
+          </div>
+          <div class="col-12 text-center mb-2"
+               v-for="(blockUrl, index) in filteredRules"
+               :key="blockUrl.id || index"
+               @click="openRuleModal(blockUrls.rules.indexOf(blockUrl))"
                style="cursor: pointer;">
-            <div class="row">
-              <div class="col-10 text-start custom-color-white">
-                {{ trimString(blockUrl.condition.urlFilter, 30) }}
+            <div class="row align-items-center">
+              <div class="col-1">
+                <span class="custom-color-white" style="font-size: 0.75rem;">{{ index + 1 }}</span>
               </div>
-              <div class="col-2">
+              <div class="col-7 text-start custom-color-white">
+                {{ trimString(blockUrl.condition.urlFilter, 25) }}
+              </div>
+              <div class="col-4 text-end">
+                <button class="btn btn-outline-secondary btn-sm me-1"
+                        @click.stop="moveRuleUp(blockUrls.rules.indexOf(blockUrl))"
+                        :disabled="blockUrls.rules.indexOf(blockUrl) === 0"
+                        title="Move up">
+                  <font-awesome-icon :icon="['fas', 'chevron-up']"/>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm me-1"
+                        @click.stop="moveRuleDown(blockUrls.rules.indexOf(blockUrl))"
+                        :disabled="blockUrls.rules.indexOf(blockUrl) === blockUrls.rules.length - 1"
+                        title="Move down">
+                  <font-awesome-icon :icon="['fas', 'chevron-down']"/>
+                </button>
                 <button class="btn btn-outline-danger btn-sm"
-                        @click.stop="removeItem(index)"
+                        @click.stop="removeItem(blockUrls.rules.indexOf(blockUrl))"
                         title="Delete rule">
                   <font-awesome-icon :icon="['fas', 'remove']"/>
                 </button>
@@ -413,4 +477,27 @@ function trimString(item: string, maxLength: number): string {
 </template>
 
 <style scoped>
+.form-check-input {
+  transition: all 0.3s ease;
+}
+
+.form-check-input:checked {
+  background-color: #198754;
+  border-color: #198754;
+  box-shadow: 0 0 8px rgba(25, 135, 84, 0.5);
+}
+
+.form-check-input:not(:checked) {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-outline-secondary {
+  padding: 0.15rem 0.4rem;
+  font-size: 0.7rem;
+}
+
+.btn-outline-secondary:disabled {
+  opacity: 0.3;
+}
 </style>
